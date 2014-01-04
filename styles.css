@@ -1,0 +1,32 @@
+body {
+	font-family: "Helvetica Neue", Helvetica, sans-serif, "細明體";
+	font-size: 13px;
+	background: #ff8;
+}
+#proj {
+	text-align: center;
+	background: #fff;
+}
+#inputs {
+	border:1px solid fuchsia; 
+	background: #fff;
+}
+#status {
+	text-align:center;
+}
+#outputs {
+	width: 622px;
+    height: 526px;
+	position: fixed;
+	overflow: auto;
+	overflow-y: auto;
+	overflow-x: none;
+	border:1px solid fuchsia; 
+	background: #fff;
+}
+#console {
+	background: #ffd;
+}
+#tmp {
+	background: #ffd;
+}
