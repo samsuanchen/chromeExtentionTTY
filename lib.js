@@ -2,7 +2,32 @@
 
 // https://github.com/llad/chrome-serial-monitor/blob/master/lib/serial.js
 
-
+getPorts = function (onPortsGotten) {
+  chrome.serial.getPorts(onPortsGotten)
+}
+openPort = function (port, bitrate, onPortOpened) {
+  chrome.serial.open(port, {bitrate:bitrate}, onPortOpened)
+}
+closePort = function (connectionId, onPortClosed) {
+  chrome.serial.close(connectionId, onPortClosed)
+} 
+writePort = function (connectionId, command, onPortwritten) {
+  chrome.serial.write(connectionId, str2ab(command+'\r'), onPortwritten)
+}
+onCharRead = function (readInfo) {
+  if (readInfo && readInfo.bytesRead > 0 && readInfo.data) {
+    readListener(readInfo)
+  }
+  if (connectionId>=0) {
+    setTimeout(function () {
+      chrome.serial.read(connectionId, 100, onCharRead);
+    },100)
+  }
+}
+startListening = function (callback) {
+    readListener = callback
+    onCharRead()
+}
 str2ab = function(str) {
   var buf=new ArrayBuffer(str.length);
   var bufView=new Uint8Array(buf);
@@ -60,20 +85,4 @@ utf8ToStr = function (utf8Arr) {
   return string;
 }
 
-timeout  = undefined
 
-onCharRead = function (readInfo) {
-	if (readInfo && readInfo.bytesRead > 0 && readInfo.data) {
-		readListener(readInfo)
-	}
-  if (connectionId>=0) {
-    setTimeout(function () {
-      chrome.serial.read(connectionId, 100, onCharRead);
-    },100)
-  }
-};
-
-startListening = function (callback) {
-    readListener = callback;
-    onCharRead();
-};

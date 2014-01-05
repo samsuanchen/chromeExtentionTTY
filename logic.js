@@ -12,17 +12,40 @@ lastCommand	 = undefined
 CR 			 = 13
 LF 			 = 10
 /////////////////////////////////////////////////////////////////////
-openPort = function () {
-	var port = e_port.value
-	var bitrate = {bitrate:parseInt(e_bitrate.value)}
-	chrome.serial.open(port, bitrate, onPortOpen)
+showConnection = function(id) { var action, flag
+	e_cid.innerHTML = connectionId = id
+	e_command.disabled = e_send.disabled = flag = id<0
+	if (flag) {
+		e_cid.classList.add('red')
+		action = 'connect'
+		e_action.innerHTML = 'start'
+	} else {
+		e_cid.classList.remove('red')
+		action = 'disconn'
+		e_action.innerHTML = 'stop'
+	}
+	e_button.value = action
+	e_console.innerHTML += action+' '+
+		new Date().toISOString().split(/T|\..+/g).join(' ')
 }
 /////////////////////////////////////////////////////////////////////
-onPortWrite = function (result) {
-	console.log('last command of '+
-		lastCommand.length+
-		' bytes written to '+
-		e_port.value)
+onPortsGotten = function (ports){
+    ports.forEach(function (port) {
+    	var e_portOption = document.createElement('option')
+        e_portOption.value = e_portOption.innerText = port
+        e_portPicker.appendChild(e_portOption)
+    })
+}
+onPortClosed = function (result) {
+	showConnection(-1)
+	console.log(result)
+}
+onPortOpened = function(data) {
+	showConnection(data.connectionId)
+	startListening(onPortRead)
+}
+onPortwritten = function (result) {
+	console.log(lastCommand.length+'-byte command written to '+e_port.value)
 }
 onPortRead = function (buf) {
 	var u = new Uint8Array(buf.data)
@@ -50,73 +73,64 @@ onPortRead = function (buf) {
 		}
 	}
 }
-onPortOpen = function(data) {
-	connectionId = data.connectionId
-	if (connectionId<0) return
-	e_button.value = 'disconnect'
-	e_status.innerHTML = 'connection Id ' + connectionId
-	e_console.innerHTML += new Date().toISOString().split(/T|\..+/g).join(' ')
-	console.log(data)
-	startListening(onPortRead)
-}
 /////////////////////////////////////////////////////////////////////
 onButtonClick = function (e) {
-	if (e.target.value === 'connect') {
-		openPort()
-	} else {
-		chrome.serial.close(connectionId, function (result) {
-			console.log('disconnected')
-		})
-		connectionId = -1
-		e_status.innerHTML = 'connection Id ' + connectionId
-		e_button.value = 'connect'
-	}
+	if (e.target.value === 'connect')
+		openPort(e_port.value, parseInt(e_bitrate.value), onPortOpened)
+	else
+		closePort(connectionId, onPortClosed)
 }
 onPortChange = function (e) {
     if (connectionId >= 0) {
-        closeSerial(onClose)
-        return
+        closePort(connectionId, onPortClosed)
     }
     e_port.value = e.target.value
-    openPort()
+    openPort(e_port.value, parseInt(e_bitrate.value), onPortOpened)
+}
+onCmdChange = function (e) {
+	e_bytes.innerHTML=strLen(e.target.value)
 }
 onKeyDown = function (e) {
 	if (e.keyCode===CR) {
 		onSendClick()
+		return
 	}
+	onCmdChange(e)
 }
 onSendClick = function () {
 	lastCommand = e_command.value.trim()
-	chrome.serial.write(connectionId, str2ab(lastCommand+'\r'), onPortWrite)
+	writePort(connectionId, lastCommand, onPortwritten)
+}
+onabort = function(e) {
+	if (connectionId>=0)
+		closePort(connectionId, onPortClosed)
 }
 onload = function(e) {
 //-----------------------------------------------------------------//
 	debugger
 //-----------------------------------------------------------------//
-	e_port	 	= document.getElementById('port'		)
-	e_bitrate	= document.getElementById('bitrate'		)
-	e_status 	= document.getElementById('status'		)
-	e_button 	= document.getElementById('button'		)
-	e_button    .onclick  = onButtonClick
+	e_body		= e.target.children[0].children[1]
 	e_outputs	= document.getElementById('outputs'		)
 	e_console	= document.getElementById('console'		)
 	e_tmp	 	= document.getElementById('tmp'			)
-	e_portPicker= document.getElementById('port-picker'	)
-	e_portPicker.onchange = onPortChange
 	e_command	= document.getElementById('command'		)
+	e_command   .disabled = true
+	e_command   .onchange = onCmdChange
 	e_command   .onkeydown= onKeyDown
 	e_send		= document.getElementById('send'		)
+	e_send		.disabled = true
 	e_send      .onclick  = onSendClick
+	e_bitrate	= document.getElementById('bitrate'		)
+	e_port	 	= document.getElementById('port'		)
+	e_portPicker= document.getElementById('port-picker'	)
+	e_portPicker.onchange = onPortChange
+	e_button 	= document.getElementById('button'		)
+	e_button    .onclick  = onButtonClick
 	e_bytes		= document.getElementById('bytes'		)
-	e_body		= e.target.children[0].children[1]
+	e_action	= document.getElementById('action'		)
+	e_cid 		= document.getElementById('cid'			)
 //-----------------------------------------------------------------//
-	chrome.serial.getPorts(function (ports){
-	    ports.forEach(function (port) {
-	    	var e_portOption = document.createElement('option')
-	        e_portOption.value = e_portOption.innerText = port
-	        e_portPicker.appendChild(e_portOption)
-	    })
-	})
+	getPorts(onPortsGotten)
 //-----------------------------------------------------------------//
 }
 /////////////////////////////////////////////////////////////////////

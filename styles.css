@@ -1,32 +1,65 @@
 body {
+	margin-top: 8px;
 	font-family: "Helvetica Neue", Helvetica, sans-serif, "細明體";
 	font-size: 13px;
 	background: #ff8;
 }
+label {
+	margin-left: 4px; 
+}
+div {
+	border: 1px solid fuchsia;
+}
+.red {
+	color: red;
+}
 #proj {
+	margin-top: 0px;
 	text-align: center;
 	background: #fff;
 }
-#inputs {
-	border:1px solid fuchsia; 
-	background: #fff;
-}
-#status {
-	text-align:center;
-}
 #outputs {
+	margin-top:0px;
 	width: 622px;
-    height: 526px;
-	position: fixed;
+    height: 584px;
 	overflow: auto;
 	overflow-y: auto;
 	overflow-x: none;
-	border:1px solid fuchsia; 
+	background: #eee;
+}
+	#console {
+		margin-top: 2px;
+		margin-left: 2px;
+		border: 1px solid silver;
+		background: #eeb;
+	}
+	#tmp {
+		margin-left: 2px;
+		background: #eed;
+	}
+#inputs {
+	margin-top: 6px; 
 	background: #fff;
 }
-#console {
-	background: #ffd;
+	#send {
+		margin-right: 16px; 
+	}
+	#command {
+		margin-left: 2px; 
+		width: 578px;
+	}
+#hint {
+	color: red;
 }
-#tmp {
-	background: #ffd;
+#status {
+	margin-top: 6px;
+	background: #fff;
+	text-align:center;
 }
+	#labBytes {
+		margin-top: 0px;
+		margin-right: 430px;
+	}
+	#labConn {
+		margin-top:0px;
+	}

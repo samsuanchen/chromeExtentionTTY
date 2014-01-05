@@ -8,20 +8,21 @@
   <link   rel    ="stylesheet" href="styles.css">
 </head><body>
   <h3    id="proj" >Chrome Extention TTY</h3>
-  <div   id="inputs">
-    <label>Port Options  <select id="port-picker"                 >  </select></label>
-    <label>Port          <input  id="port"    size=4 value='COM32'>  </input ></label>
-    <label>bitrate       <input  id="bitrate" size=4 value=19200  >  </input ></label>
-                         <input  id="button"  type="button" value="connect"  > <br>
-    <label>command       <input  id="command" size=80       value="WORDS"    ></label>
-                         <input  id="send"    type="button" value="send"     >
-  </div>
-  <div   id="status" >
-    <label>Connection Id <span   id="status"                      >-1</span  ></label>
-    <label>command bytes <span   id="bytes"                       > 5</span  ></label>
-  </div>
-  <div   id="outputs"   height="700" overflow="auto">
+  <div   id="outputs"   >
     <pre id="console"   ></pre>
-		<pre id="tmp"       ></pre>
+    <pre id="tmp"       ></pre>
+  </div>
+  <div   id="inputs">
+    <label>Cmd           <input  id="command" size=80       value="WORDS"    ></label>
+    <br>
+                         <input  id="send"    type="button" value="sendCmd"  >
+    <label>baudrate      <input  id="bitrate" size=4 value=19200  >  </input ></label>
+    <label>Port          <input  id="port"    size=4 value='COM32'>  </input ></label>
+    <label>Port Options  <select id="port-picker"                 >  </select></label>
+    <span id="hint">click <input id="button" type="button" value="connect"> to <label id="action">start</label></span>
+  </div>
+  <div   id="status">
+    <label id="labBytes"><span id="bytes">5</span>-byte Cmd</label>
+    <label id="labConne">Connection Id <span id="cid" class="red">-1</span></label>
   </div>
 </body></html>
