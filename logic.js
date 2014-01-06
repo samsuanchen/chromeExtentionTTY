@@ -1,32 +1,54 @@
 // logic.js 20140103 sam & yap
 
 /////////////////////////////////////////////////////////////////////
-connectionId = -1
-readListener = undefined
-textRead     = ''
-textTmp		 = ''
-consoleLog   = []
-dataReadBuf  = []
-dataTempBuf	 = []
-lastCommand	 = undefined
-CR 			 = 13
-LF 			 = 10
+connectionId= -1
+readListener= undefined
+textRead    = ''
+textTmp		= ''
+ioLog 		= []
+dataReadBuf = []
+command		= undefined
+commands	= []
+CR 			= 13
+LF 			= 10
+actions 	= ['connect','disconn']
+ok 			= ''
+okp			= ''
+okr			= ''
 /////////////////////////////////////////////////////////////////////
-showConnection = function(id) { var action, flag
+showConnection = function(id) { var flag, iact
 	e_cid.innerHTML = connectionId = id
 	e_command.disabled = e_send.disabled = flag = id<0
+	iact = flag?0:1
+	e_console.innerHTML += e_console.innerHTML ? '\r\n' : ''
+	e_console.innerHTML += '<sys>'+actions[1-iact]+' '+
+		new Date().toISOString().split(/T|\..+/g).join(' ')+'</sys>'
+	e_outputs.scrollTop = e_outputs.scrollHeight
 	if (flag) {
 		e_cid.classList.add('red')
-		action = 'connect'
 		e_action.innerHTML = 'start'
 	} else {
 		e_cid.classList.remove('red')
-		action = 'disconn'
 		e_action.innerHTML = 'stop'
 	}
-	e_button.value = action
-	e_console.innerHTML += action+' '+
-		new Date().toISOString().split(/T|\..+/g).join(' ')
+	e_button.value = actions[iact]
+}
+consoleLog = function () {
+	text = e_tmp.innerHTML.replace(/[\x06\n]/g,'')
+	if (text.length===0) return
+//	if (ioLog.length && text.length==0 && ioLog[ioLog.length-1].length===0) return
+	e_tmp.innerHTML=''
+	if (command===text) {
+		text='<cmd>'+text+'</cmd>'
+	}
+	else if (ok) {
+		text=text.replace(okp,okr)
+	}
+	e_console.innerHTML += '<br>'+ text
+	e_outputs.scrollTop = e_outputs.scrollHeight
+	ioLog.push(text)
+	console.log(text)
+	dataReadBuf = []
 }
 /////////////////////////////////////////////////////////////////////
 onPortsGotten = function (ports){
@@ -36,40 +58,41 @@ onPortsGotten = function (ports){
         e_portPicker.appendChild(e_portOption)
     })
 }
-onPortClosed = function (result) {
+onPortClosed = function () {
 	showConnection(-1)
-	console.log(result)
+}
+onFirstCmdOutput = function () { var t
+	ok = ioLog[ioLog.length-1]
+	okp= RegExp(ok+'$')
+	okr= '<ok>'+ok+'</ok>'
+	e_console.innerHTML=e_console.innerHTML.replace(okp,okr)
 }
 onPortOpened = function(data) {
 	showConnection(data.connectionId)
 	startListening(onPortRead)
+	setTimeout(function(){
+		writePort(connectionId, '', function() {
+			setTimeout(onFirstCmdOutput,1000)
+		})
+	},6000)
 }
-onPortwritten = function (result) {
-	console.log(lastCommand.length+'-byte command written to '+e_port.value)
+onPortWritten = function (result) {
+	console.log(command.length+'-byte command line written to '+e_port.value)
 }
 onPortRead = function (buf) {
 	var u = new Uint8Array(buf.data)
 	for (var i = 0; i < u.length; i++) {
 		var b = u[i]
 		if (b === LF) {
-			e_console.innerHTML += '<br>'+e_tmp.innerHTML
-			e_outputs.scrollTop = e_outputs.scrollHeight
-			consoleLog.push(textRead)
-			console.log(textRead)
-			dataReadBuf = []
+			consoleLog()
 		} else {
 			dataReadBuf.push(b) 
-			textRead = utf8ToStr(dataReadBuf)
+			e_tmp.innerHTML = textRead = utf8ToStr(dataReadBuf)
 			if (strLen(textRead)>75) {
-				e_console.innerHTML += '<br>'+e_tmp.innerHTML
-				e_outputs.scrollTop = e_outputs.scrollHeight
-				window.scrollTo(e_console.top,e_console.scrollHeight)
-				console.log(e_tmp.innerHTML)
+				consoleLog()
 				dataReadBuf = dataReadBuf.slice(dataReadBuf.length-1)
-				textRead = utf8ToStr(dataReadBuf)
-				e_tmp.innerHTML=''
+				e_tmp.innerHTML = textRead = utf8ToStr(dataReadBuf)
 			}
-			e_tmp.innerHTML = textRead
 		}
 	}
 }
@@ -98,8 +121,8 @@ onKeyDown = function (e) {
 	onCmdChange(e)
 }
 onSendClick = function () {
-	lastCommand = e_command.value.trim()
-	writePort(connectionId, lastCommand, onPortwritten)
+	command = e_command.value.trim()
+	writePort(connectionId, command, onPortWritten)
 }
 onabort = function(e) {
 	if (connectionId>=0)

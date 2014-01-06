@@ -10,6 +10,15 @@ label {
 div {
 	border: 1px solid fuchsia;
 }
+sys {
+	color:red;
+}
+cmd {
+	color:blue;
+}
+ok {
+	color:green;
+}
 .red {
 	color: red;
 }
