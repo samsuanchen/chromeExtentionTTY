@@ -15,6 +15,6 @@ From my Window 7, before connecting to the chip, the
 The console log shows communication messages in colors:
 system:red, inputCommand:blue, ok:green, outputMessage:black
 
-Using the keys UP and DOWN, any previous command can be retrived 
+Using the keys UP and DOWN, any previous command can be reentered 
 
 We can right-click, 檢查元素, source, set BreakPoints to debug
